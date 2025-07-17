@@ -15,22 +15,25 @@ pipeline {
         stage('Detect Branch') {
             steps {
                 script {
-                    BRANCH_NAME = bat(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    def branchOutput = bat(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    def BRANCH_NAME = branchOutput.readLines().last().trim()
                     echo "Running on branch: ${BRANCH_NAME}"
+
+                    // Set a global variable for use in other stages
+                    env.ACTUAL_BRANCH = BRANCH_NAME
                 }
             }
         }
 
         stage('Build') {
             when {
-                expression { return BRANCH_NAME == "main" }
+                expression { return env.ACTUAL_BRANCH == 'main' }
             }
             steps {
                 script {
-                    def outputName = "myapp-${VERSION}.zip"
                     echo "Packaging main branch version ${VERSION}"
                     bat """
-                        powershell -Command "Compress-Archive -Path * -DestinationPath build\\\\${outputName} -Force"
+                        powershell -Command "Compress-Archive -Path * -DestinationPath build\\myapp-${VERSION}.zip -Force"
                     """
                 }
             }
@@ -38,11 +41,11 @@ pipeline {
 
         stage('Test') {
             when {
-                expression { return BRANCH_NAME.startsWith("feature/") }
+                expression { return env.ACTUAL_BRANCH.startsWith('feature/') }
             }
             steps {
-                echo "Running test stage for ${BRANCH_NAME}"
-                // Add any test commands here
+                echo "Running test stage for feature branch: ${env.ACTUAL_BRANCH}"
+                // Optional: run test commands
             }
         }
 
