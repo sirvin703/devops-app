@@ -1,16 +1,32 @@
 pipeline {
-    agent none
+    agent any
+
     stages {
-        stage('Build') {
-            agent { label 'testing' }
+        stage('Branch Check') {
             steps {
-                echo 'Running build on testing agent!'
+                script {
+                    echo "Running on branch: ${env.BRANCH_NAME}"
+                }
             }
         }
-        stage('Deploy') {
-            agent { label 'deployment' }
+
+        stage('Build') {
+            when {
+                branch 'main'
+            }
             steps {
-                echo 'Deploying app!'
+                echo 'Running main branch build stage'
+                // Add production-level steps here
+            }
+        }
+
+        stage('Test') {
+            when {
+                branch pattern: "feature/.*", comparator: "REGEXP"
+            }
+            steps {
+                echo 'Running feature branch test stage'
+                // Add dev/test steps here
             }
         }
     }
