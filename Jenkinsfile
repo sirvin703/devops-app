@@ -15,12 +15,9 @@ pipeline {
         stage('Detect Branch') {
             steps {
                 script {
-                    def branchOutput = bat(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
-                    def BRANCH_NAME = branchOutput.readLines().last().trim()
-                    echo "Running on branch: ${BRANCH_NAME}"
-
-                    // Set a global variable for use in other stages
-                    env.ACTUAL_BRANCH = BRANCH_NAME
+                	def BRANCH_NAME = env.GIT_BRANCH?.replace('origin/', '') ?: 'unknown'
+            		echo "Running on branch: ${BRANCH_NAME}"
+            		env.ACTUAL_BRANCH = BRANCH_NAME
                 }
             }
         }
