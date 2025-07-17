@@ -30,7 +30,8 @@ pipeline {
                 script {
                     echo "Packaging main branch version ${VERSION}"
                     bat """
-                        powershell -Command "Compress-Archive -Path * -DestinationPath build\\myapp-${VERSION}.zip -Force"
+                        if not exist build mkdir build
+			powershell -Command "Compress-Archive -Path * -DestinationPath build\\myapp-${VERSION}.zip -Force"
                     """
                 }
             }
