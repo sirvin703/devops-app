@@ -15,7 +15,7 @@ pipeline {
         stage('Detect Branch') {
             steps {
                 script {
-                    BRANCH_NAME = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                    BRANCH_NAME = bat(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                     echo "Running on branch: ${BRANCH_NAME}"
                 }
             }
