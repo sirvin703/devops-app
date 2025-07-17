@@ -1,48 +1,58 @@
 pipeline {
     agent any
 
+    environment {
+        VERSION = "1.0.${BUILD_NUMBER}"
+    }
+
     stages {
-        stage('Branch Check') {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Detect Branch') {
             steps {
                 script {
-                    echo "Running on branch: ${env.BRANCH_NAME}"
+                    BRANCH_NAME = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                    echo "Running on branch: ${BRANCH_NAME}"
                 }
             }
         }
 
         stage('Build') {
             when {
-                branch 'main'
+                expression { return BRANCH_NAME == "main" }
             }
             steps {
-                echo 'Running main branch build stage'
-                // Add production-level steps here
+                script {
+                    def outputName = "myapp-${VERSION}.zip"
+                    echo "Packaging main branch version ${VERSION}"
+                    bat """
+                        powershell -Command "Compress-Archive -Path * -DestinationPath build\\\\${outputName} -Force"
+                    """
+                }
             }
         }
 
         stage('Test') {
             when {
-                branch pattern: "feature/.*", comparator: "REGEXP"
+                expression { return BRANCH_NAME.startsWith("feature/") }
             }
             steps {
-                echo 'Running feature branch test stage'
-                // Add dev/test steps here
+                echo "Running test stage for ${BRANCH_NAME}"
+                // Add any test commands here
             }
         }
 
-	stage('Build and Package') {
-    		steps {
-        		script {
-            			def version = "1.0.${env.BUILD_NUMBER}"
-            			def outputName = "myapp-${version}.zip"
-
-            			echo "Packaging app version ${version}"
-           			 bat """
-                			powershell -Command "Compress-Archive -Path * -DestinationPath build/${outputName} -Force"
-           			 """
-       			}
-        		archiveArtifacts artifacts: 'build/*.zip', fingerprint: true
-    		}
-	}
+        stage('Archive') {
+            when {
+                expression { fileExists("build") }
+            }
+            steps {
+                archiveArtifacts artifacts: 'build/*.zip', fingerprint: true
+            }
+        }
     }
 }
