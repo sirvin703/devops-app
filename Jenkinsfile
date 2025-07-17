@@ -44,6 +44,5 @@ pipeline {
         		archiveArtifacts artifacts: 'build/*.zip', fingerprint: true
     		}
 	}
-
     }
 }
