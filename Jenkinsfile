@@ -29,5 +29,21 @@ pipeline {
                 // Add dev/test steps here
             }
         }
+
+	stage('Build and Package') {
+    		steps {
+        		script {
+            			def version = "1.0.${env.BUILD_NUMBER}"
+            			def outputName = "myapp-${version}.zip"
+
+            			echo "Packaging app version ${version}"
+           			 bat """
+                			powershell -Command "Compress-Archive -Path * -DestinationPath build/${outputName} -Force"
+           			 """
+       			}
+        		archiveArtifacts artifacts: 'build/*.zip', fingerprint: true
+    		}
+	}
+
     }
 }
