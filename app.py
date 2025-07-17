@@ -27,5 +27,9 @@ def get_users():
     result = [{'id': u.id, 'name': u.name, 'email': u.email} for u in users]
     return jsonify(result)
 
+def bad_code():
+    eval("print('this is unsafe')")
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
